@@ -17,7 +17,22 @@ class ClientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Client
-        fields = ['id', 'code', 'name', "client_type", 'address', 'neighborhood', 'municipality', 'state', 'full_address', 'latitude', 'longitude', 'sector', 'market']
+        fields = [
+            'id', 
+            'code', 
+            'name', 
+            "client_type", 
+            'address', 
+            'neighborhood', 
+            'municipality', 
+            'state', 
+            'full_address', 
+            'latitude', 
+            'longitude', 
+            'sector', 
+            'market',
+            'is_active'
+        ]
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:

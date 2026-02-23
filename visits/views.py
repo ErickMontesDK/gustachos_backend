@@ -147,76 +147,100 @@ def client_code_available(request):
 @api_view(['GET', 'POST'])
 def client_list(request):
     print("client_list")
+    
+    
     if request.method == 'GET':
         clients = Client.objects.all().filter(is_deleted=False)
-        
+
+        sorting = request.query_params.get('sorting')
         code = request.query_params.get('code')
+        client_type = request.query_params.get('client_type')
+        sector = request.query_params.get('sector')
+        market = request.query_params.get('market')
+        municipality = request.query_params.get('municipality')
+        state = request.query_params.get('state')
+        address = request.query_params.get('address')
+        name = request.query_params.get('name')
+        
+        if sorting:
+            clients = clients.order_by(sorting)
+        else:
+            clients = clients.order_by('-id')
+        
         if code:
             clients = clients.filter(code__icontains=code)
             
-        name = request.query_params.get('name')
-        if name:
-            clients = clients.filter(name__icontains=name)
+        if client_type:
+            clients = clients.filter(client_type__name__iexact=client_type)
             
-        address = request.query_params.get('address')
-        if address:
-            clients = clients.filter(address__icontains=address)
+        if sector:
+            clients = clients.filter(sector__icontains=sector)
 
-        neighborhood = request.query_params.get('neighborhood')
-        if neighborhood:
-            clients = clients.filter(neighborhood__icontains=neighborhood)
-
-        municipality = request.query_params.get('municipality')
-        if municipality:
-            clients = clients.filter(municipality__icontains=municipality)
-
-        state = request.query_params.get('state')
-        if state:
-            clients = clients.filter(state__icontains=state)
-            
-        market = request.query_params.get('market')
         if market:
             clients = clients.filter(market__icontains=market)
             
-        sector = request.query_params.get('sector')
-        if sector:
-            clients = clients.filter(sector__icontains=sector)
+        if municipality:
+            clients = clients.filter(municipality__icontains=municipality)
             
-        client_type = request.query_params.get('client_type')
-        if client_type:
-            clients = clients.filter(client_type__name__iexact=client_type)
-
-        serializer = ClientSerializer(clients, many=True)
-        return Response(serializer.data)
+        if state:
+            clients = clients.filter(state__icontains=state)
+            
+        if address:
+            clients = clients.filter(
+                Q(address__icontains=address) |
+                Q(neighborhood__icontains=address)
+            )
+            
+        if name:
+            clients = clients.filter(name__icontains=name)
+            
+        paginator = StandardPagination()
+        result_page = paginator.paginate_queryset(clients, request)
+        serializer = ClientSerializer(result_page, many=True)
+        return paginator.get_paginated_response(serializer.data)
     
     elif request.method == 'POST':
-        
-        print(request.data)
         serializer = ClientSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        raise ValidationError(serializer.errors)
 
-
-@api_view(['GET', 'PUT', 'DELETE'])
-def client_detail(request, code):
-    # Only get clients that are NOT marked as deleted
-    client = get_object_or_404(Client, code=code, is_deleted=False)
+@api_view(['GET'])
+def client_by_code(request, code):
+    try:
+        client = Client.objects.get(code=code, is_deleted=False)
+    except Client.DoesNotExist:
+        raise NotFound("Client not found")
     
     if request.method == 'GET':
         serializer = ClientSerializer(client)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     
-    elif request.method == 'PUT':
-        serializer = ClientSerializer(client, data=request.data)
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+def client_detail(request, id):
+    print("method: ", request.method)
+    try:
+        client = Client.objects.get(id=id, is_deleted=False)
+        print(client)
+    except Client.DoesNotExist:
+        raise NotFound("Client not found")
+    
+    if request.method == 'GET':
+        serializer = ClientSerializer(client)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    elif request.method == 'PATCH':
+        print("PATCH")
+        serializer = ClientSerializer(client, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+       
+        raise ValidationError(serializer.errors)
     
     elif request.method == 'DELETE':
-        # Perform soft delete
         client.is_deleted = True
         client.save()
         return Response({'message': 'Client marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
