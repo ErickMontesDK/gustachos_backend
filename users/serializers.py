@@ -27,14 +27,31 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 
-        'username', 
-        'full_name', 
-        'email', 
-        'role']
+        fields = [
+            'id', 
+            'username', 
+            'full_name', 
+            'first_name', 
+            'last_name', 
+            'email', 
+            'role',
+            'password',
+            'is_deleted'
+        ]
+        extra_kwargs = {
+            'password': {'write_only': True}
+        }
 
     def validate(self, attrs):
         email = attrs.get('email')
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError("Email already exists")
         return attrs
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        instance = self.Meta.model(**validated_data)
+        if password is not None:
+            instance.set_password(password)
+        instance.save()
+        return instance

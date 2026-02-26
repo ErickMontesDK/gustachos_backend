@@ -48,7 +48,37 @@ def user_list(request):
 
  if request.method == "POST":
     serializer = UserSerializer(data=request.data)
+    print(serializer.is_valid())
+    print(serializer.errors)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PATCH', 'DELETE'])
+def user_detail(request, pk):
+    
+    try:
+        user = User.objects.get(pk=pk, is_deleted=False)
+    except User.DoesNotExist:
+        raise NotFound("User not found")
+    
+    if request.method == 'GET':
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    elif request.method == 'PATCH':
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        raise ValidationError(serializer.errors)
+    
+    elif request.method == 'DELETE':
+        user.is_deleted = True
+        user.save()
+        return Response({'message': 'User marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
+    
+    raise MethodNotAllowed(request.method)
