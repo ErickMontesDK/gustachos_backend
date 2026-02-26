@@ -16,10 +16,13 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from visits.urls import urlpatterns as visit_urls
-from users.urls import urlpatterns as auth_urls
+from users.urls import urlpatterns as user_urls
+from users.views import CustomTokenObtainPairView, CustomTokenRefreshView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/auth/', include(auth_urls)),
+    path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+    path('api/', include(user_urls)),
     path('api/', include(visit_urls)),
 ]

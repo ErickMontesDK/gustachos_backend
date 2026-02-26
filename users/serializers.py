@@ -1,5 +1,7 @@
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework import serializers
+from .models import User
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
@@ -21,3 +23,18 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
         except Exception as e:
             print(f"Token refresh failed: {str(e)}")
             raise e
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 
+        'username', 
+        'full_name', 
+        'email', 
+        'role']
+
+    def validate(self, attrs):
+        email = attrs.get('email')
+        if User.objects.filter(email=email).exists():
+            raise serializers.ValidationError("Email already exists")
+        return attrs
