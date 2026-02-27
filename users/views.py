@@ -83,7 +83,6 @@ def user_detail(request, pk):
     raise MethodNotAllowed(request.method)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def user_me(request):
     try:
         user = User.objects.get(pk=request.user.id, is_deleted=False)
@@ -97,7 +96,6 @@ def user_me(request):
     raise MethodNotAllowed(request.method)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def update_user_password(request):
     try:
         user = User.objects.get(pk=request.user.id, is_deleted=False)
@@ -105,7 +103,6 @@ def update_user_password(request):
         raise NotFound("User not found")
     
     if request.method == 'POST':
-        print(request.data)
         serializer = UserSerializer(user, data=request.data, partial=True)
         
         if serializer.is_valid():

@@ -83,7 +83,6 @@ class VisitSerializer(serializers.ModelSerializer):
             c = 2 * asin(sqrt(a))
             distance = earth_radius * c
 
-            print(f"Calculated distance: {distance} meters")
             data['distance_from_client'] = distance
 
             data['is_valid'] = distance < 100

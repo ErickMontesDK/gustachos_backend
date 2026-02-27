@@ -10,7 +10,7 @@ def create_default_config(apps, schema_editor):
             business_name="EchoRoute Business",
             time_zone="UTC",
             locale="en-US",
-            distance_unit="km",
+            distance_unit="m",
             max_valid_distance=100,
             min_time_between_visits=30,
             logo_url="DEFAULT_LOGO"
