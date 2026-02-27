@@ -1,13 +1,15 @@
 from django.shortcuts import render
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 from .models import User
 from .serializers import UserSerializer
 from visits.views import StandardPagination
 from django.db.models import Q
+from rest_framework.exceptions import NotFound, MethodNotAllowed, ValidationError
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -48,8 +50,6 @@ def user_list(request):
 
  if request.method == "POST":
     serializer = UserSerializer(data=request.data)
-    print(serializer.is_valid())
-    print(serializer.errors)
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -57,8 +57,7 @@ def user_list(request):
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
-def user_detail(request, pk):
-    
+def user_detail(request, pk):   
     try:
         user = User.objects.get(pk=pk, is_deleted=False)
     except User.DoesNotExist:
@@ -80,5 +79,39 @@ def user_detail(request, pk):
         user.is_deleted = True
         user.save()
         return Response({'message': 'User marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
+    
+    raise MethodNotAllowed(request.method)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_me(request):
+    try:
+        user = User.objects.get(pk=request.user.id, is_deleted=False)
+    except User.DoesNotExist:
+        raise NotFound("User not found")
+    
+    if request.method == 'GET':
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    raise MethodNotAllowed(request.method)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_user_password(request):
+    try:
+        user = User.objects.get(pk=request.user.id, is_deleted=False)
+    except User.DoesNotExist:
+        raise NotFound("User not found")
+    
+    if request.method == 'POST':
+        print(request.data)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        raise ValidationError(serializer.errors)
     
     raise MethodNotAllowed(request.method)

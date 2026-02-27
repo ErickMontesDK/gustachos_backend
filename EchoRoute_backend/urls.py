@@ -18,6 +18,7 @@ from django.urls import path, include
 from visits.urls import urlpatterns as visit_urls
 from users.urls import urlpatterns as user_urls
 from users.views import CustomTokenObtainPairView, CustomTokenRefreshView
+from core.urls import urlpatterns as core_urls
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,4 +26,5 @@ urlpatterns = [
     path('api/auth/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include(user_urls)),
     path('api/', include(visit_urls)),
+    path('api/', include(core_urls)),
 ]

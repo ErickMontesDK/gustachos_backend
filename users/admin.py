@@ -17,7 +17,7 @@ class CustomUserAdmin(UserAdmin):
     add_fieldsets = UserAdmin.add_fieldsets + (
         (None, {
             "classes": ("wide",),
-            "fields": ("role", "email", "first_name", "last_name", "is_deleted"),
+            "fields": ("role", "email", "first_name", "last_name", "is_deleted", "password",),
         }),
     )
 

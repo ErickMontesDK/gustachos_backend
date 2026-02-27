@@ -9,4 +9,6 @@ urlpatterns = [
     path('clients/code-available/', client_code_available, name='client_code_available'),
     path('clients/code/<str:code>/', client_by_code, name='client_by_code'),
     path('clients/<int:id>/', client_detail, name='client_detail'),
+
+    
 ]
