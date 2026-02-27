@@ -146,9 +146,6 @@ def client_code_available(request):
 
 @api_view(['GET', 'POST'])
 def client_list(request):
-    print("client_list")
-    
-    
     if request.method == 'GET':
         clients = Client.objects.all().filter(is_deleted=False)
 
@@ -220,10 +217,8 @@ def client_by_code(request, code):
 
 @api_view(['GET', 'PATCH', 'DELETE'])
 def client_detail(request, id):
-    print("method: ", request.method)
     try:
         client = Client.objects.get(id=id, is_deleted=False)
-        print(client)
     except Client.DoesNotExist:
         raise NotFound("Client not found")
     
@@ -232,7 +227,6 @@ def client_detail(request, id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == 'PATCH':
-        print("PATCH")
         serializer = ClientSerializer(client, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
