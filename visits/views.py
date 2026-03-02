@@ -7,6 +7,9 @@ from .models import ClientType, Visit, Client
 from .serializers import *
 from django.db.models import Q
 from rest_framework.exceptions import NotFound, ValidationError, MethodNotAllowed
+from .selectors import get_filtered_visits, get_filtered_clients
+from utils.excel_generator import ExcelGenerator
+from datetime import datetime
 
 class StandardPagination(PageNumberPagination):
     page_size = 10
@@ -67,52 +70,7 @@ def visit_list(request):
 
     if request.method == 'GET':
         
-        visits = Visit.objects.all().filter(is_deleted=False)
-
-        sorting = request.query_params.get('sorting')
-        if sorting:
-            visits = visits.order_by(sorting)
-        else:
-            visits = visits.order_by('-id')
-
-        search_term = request.query_params.get('search_term')
-        client_type = request.query_params.get('client_type')
-        date_from = request.query_params.get('date_from')
-        date_to = request.query_params.get('date_to')
-
-        client_municipality = request.query_params.get('municipality')
-        client_sector = request.query_params.get('sector')
-        client_state = request.query_params.get('state')
-
-        if search_term:
-            visits = visits.filter(
-                Q(client__code__icontains=search_term) | 
-                Q(client__name__icontains=search_term) | 
-                Q(client__address__icontains=search_term) |
-                Q(client__neighborhood__icontains=search_term) |
-                Q(client__market__icontains=search_term) | 
-                Q(client__sector__icontains=search_term) | 
-                Q(deliverer__first_name__icontains=search_term) | 
-                Q(deliverer__last_name__icontains=search_term) 
-            )
-
-        if client_type:
-            visits = visits.filter(client__client_type__name__iexact=client_type)
-        
-        if client_municipality:
-            visits = visits.filter(client__municipality__icontains=client_municipality)
-        
-        if client_sector:
-            visits = visits.filter(client__sector__icontains=client_sector)
-
-        if client_state:
-            visits = visits.filter(client__state__icontains=client_state)
-
-        if date_from:
-            visits = visits.filter(visited_at__gte=date_from)
-        
-        if date_to:
-            visits = visits.filter(visited_at__lte=date_to)
+        visits = get_filtered_visits(request)
 
         paginator = StandardPagination()
         result_page = paginator.paginate_queryset(visits, request)
@@ -129,6 +87,30 @@ def visit_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise ValidationError(serializer.errors)
 
+@api_view(['GET'])
+def visit_list_export(request):
+    date = datetime.now().strftime("%Y-%m-%d")
+    visits = get_filtered_visits(request)
+    
+    columns = [
+        ("ID", "id"),
+        ("Client", "client__name"),
+        ("Client Code", "client__code"),
+        ("Client Type", "client__client_type__name"),
+        ("Sector", "client__sector"),
+        ("Deliverer", lambda x: f"{x.deliverer.first_name} {x.deliverer.last_name}" if x.deliverer else ""),
+        ("Date", lambda x: x.visited_at.strftime("%Y-%m-%d") if x.visited_at else ""),
+        ("Time", lambda x: x.visited_at.strftime("%H:%M") if x.visited_at else ""),
+        ("Address", "client__address"),
+        ("Municipality", "client__municipality"),
+        ("State", "client__state"),
+        ("Is productive", "is_productive"),
+        ("Is valid", "is_valid"),
+        ("Notes", "notes"),
+    ]
+    
+    generator = ExcelGenerator(sheet_name="visits_report")
+    return generator.generate_excel(visits, columns, filename=f"visits_report_{date}.xlsx")
 
 @api_view(['GET', 'PATCH', 'DELETE'])
 def visit_detail(request, pk):
@@ -175,50 +157,8 @@ def client_code_available(request):
 @api_view(['GET', 'POST'])
 def client_list(request):
     if request.method == 'GET':
-        clients = Client.objects.all().filter(is_deleted=False)
-
-        sorting = request.query_params.get('sorting')
-        code = request.query_params.get('code')
-        client_type = request.query_params.get('client_type')
-        sector = request.query_params.get('sector')
-        market = request.query_params.get('market')
-        municipality = request.query_params.get('municipality')
-        state = request.query_params.get('state')
-        address = request.query_params.get('address')
-        name = request.query_params.get('name')
+        clients = get_filtered_clients(request)
         
-        if sorting:
-            clients = clients.order_by(sorting)
-        else:
-            clients = clients.order_by('-id')
-        
-        if code:
-            clients = clients.filter(code__icontains=code)
-            
-        if client_type:
-            clients = clients.filter(client_type__name__iexact=client_type)
-            
-        if sector:
-            clients = clients.filter(sector__icontains=sector)
-
-        if market:
-            clients = clients.filter(market__icontains=market)
-            
-        if municipality:
-            clients = clients.filter(municipality__icontains=municipality)
-            
-        if state:
-            clients = clients.filter(state__icontains=state)
-            
-        if address:
-            clients = clients.filter(
-                Q(address__icontains=address) |
-                Q(neighborhood__icontains=address)
-            )
-            
-        if name:
-            clients = clients.filter(name__icontains=name)
-            
         paginator = StandardPagination()
         result_page = paginator.paginate_queryset(clients, request)
         serializer = ClientSerializer(result_page, many=True)
@@ -266,3 +206,26 @@ def client_detail(request, id):
         client.is_deleted = True
         client.save()
         return Response({'message': 'Client marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+def client_list_export(request):
+    clients = get_filtered_clients(request)
+    date = datetime.now().strftime("%Y-%m-%d")
+    
+    columns = [
+        ("ID", "id"),
+        ("Client", "name"),
+        ("Client code", "code"),
+        ("Client type", "client_type__name"),
+        ("Sector", "sector"),
+        ("Market", "market"),
+        ("Address", "address"),
+        ("Municipality", "municipality"),
+        ("State", "state"),
+        ("Active", "is_active"),
+    ]
+    
+    generator = ExcelGenerator(sheet_name="Clientes")
+    return generator.generate_excel(clients, columns, filename=f"clients_report_{date}.xlsx")
+
+
