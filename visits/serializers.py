@@ -9,7 +9,7 @@ from math import radians, sin, asin, sqrt, cos
 class ClientTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClientType
-        fields = ['name']
+        fields = '__all__'
 
 class ClientSerializer(serializers.ModelSerializer):
     client_type = serializers.SlugRelatedField(read_only=True, slug_field='name')

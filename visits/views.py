@@ -26,11 +26,39 @@ class StandardPagination(PageNumberPagination):
         return response
 
 
-@api_view(['GET'])
+@api_view(['GET', 'POST'])
 def get_client_types(request):
-    client_types = ClientType.objects.all()
-    serializer = ClientTypeSerializer(client_types, many=True)
-    return Response(serializer.data)
+    if request.method == 'GET':
+        client_types = ClientType.objects.all()
+        serializer = ClientTypeSerializer(client_types, many=True)
+        return Response(serializer.data)
+        
+    elif request.method == 'POST':
+        serializer = ClientTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        raise ValidationError(serializer.errors)
+
+@api_view(['PATCH', 'DELETE'])
+def client_type_detail(request, pk):
+    try:
+        client_type = ClientType.objects.get(pk=pk)
+    except ClientType.DoesNotExist:
+        raise NotFound("Client type not found")
+    
+    if request.method == 'PATCH':
+        serializer = ClientTypeSerializer(client_type, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    elif request.method == 'DELETE':
+        client_type.delete()
+        return Response({'message': 'Client type deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+    
+    raise MethodNotAllowed(request.method)
 
 
 @api_view(['GET', 'POST'])

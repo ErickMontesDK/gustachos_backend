@@ -33,7 +33,7 @@ class Client(models.Model):
     )
     client_type = models.ForeignKey(
         ClientType, 
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name="clients",
         verbose_name="Type",
         null=True,
