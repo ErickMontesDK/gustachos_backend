@@ -38,7 +38,7 @@ def get_filtered_visits(request):
         )
 
     if client_type:
-        queryset = queryset.filter(client__client_type__name__iexact=client_type)
+        queryset = queryset.filter(client__client_type__id=client_type)
     
     if client_municipality:
         queryset = queryset.filter(client__municipality__icontains=client_municipality)
@@ -88,7 +88,7 @@ def get_filtered_clients(request):
         queryset = queryset.filter(code__icontains=code)
         
     if client_type:
-        queryset = queryset.filter(client_type__name__iexact=client_type)
+        queryset = queryset.filter(client_type__id=client_type)
         
     if sector:
         queryset = queryset.filter(sector__icontains=sector)

@@ -12,7 +12,7 @@ class ClientTypeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class ClientSerializer(serializers.ModelSerializer):
-    client_type = serializers.SlugRelatedField(read_only=True, slug_field='name')
+    client_type_name = serializers.CharField(source='client_type.name', read_only=True)
     full_address = serializers.CharField(source='get_full_address', read_only=True)
 
     class Meta:
@@ -22,6 +22,7 @@ class ClientSerializer(serializers.ModelSerializer):
             'code', 
             'name', 
             "client_type", 
+            "client_type_name",
             'address', 
             'neighborhood', 
             'municipality', 
@@ -36,6 +37,7 @@ class ClientSerializer(serializers.ModelSerializer):
         ]
 
 class ClientForMapSerializer(serializers.ModelSerializer):
+    # client_type = serializers.SlugRelatedField(read_only=True, slug_field='name')
     class Meta:
         model = Client
         fields = [
@@ -43,7 +45,7 @@ class ClientForMapSerializer(serializers.ModelSerializer):
             'name', 
             'latitude', 
             'longitude', 
-            
+            'client_type'
         ]
 
 class UserSerializer(serializers.ModelSerializer):

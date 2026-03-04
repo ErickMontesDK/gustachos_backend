@@ -123,8 +123,8 @@ def update_user_password(request):
 @api_view(['PATCH'])
 def user_restore(request, pk):
     user = request.user
-    if user.role != 'ADMIN':
-        raise PermissionDenied("You do not have permission to perform this action")
+    # if user.role != 'ADMIN':
+        # raise PermissionDenied("You do not have permission to perform this action")
 
     if request.method == 'PATCH':
         try:

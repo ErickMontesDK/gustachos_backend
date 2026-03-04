@@ -224,6 +224,7 @@ def client_detail(request, id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == 'PATCH':
+        print("podran hacerlo?", request.data)
         serializer = ClientSerializer(client, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
