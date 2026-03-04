@@ -31,13 +31,25 @@ class ClientSerializer(serializers.ModelSerializer):
             'longitude', 
             'sector', 
             'market',
-            'is_active'
+            'is_active',
+            'is_deleted'
+        ]
+
+class ClientForMapSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Client
+        fields = [
+            'id', 
+            'name', 
+            'latitude', 
+            'longitude', 
+            
         ]
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['full_name', 'role']
+        fields = ['full_name', 'role', 'is_deleted']
 
 class VisitSerializer(serializers.ModelSerializer):
     client_details = ClientSerializer(source='client', read_only=True)

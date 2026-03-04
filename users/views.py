@@ -22,7 +22,13 @@ class CustomTokenRefreshView(TokenRefreshView):
 def user_list(request):
 
  if request.method == "GET":
-      users = User.objects.all().filter(is_deleted=False)
+      users = User.objects.all()
+
+      if request.user.role == 'ADMIN':
+          is_deleted = request.query_params.get('is_deleted', 'False').capitalize()
+          users = users.filter(is_deleted=is_deleted)
+      else:
+          users = users.filter(is_deleted=False)
 
       sorting = request.query_params.get('sorting')
       role = request.query_params.get('role')
@@ -110,5 +116,24 @@ def update_user_password(request):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         raise ValidationError(serializer.errors)
+    
+    raise MethodNotAllowed(request.method)
+
+
+@api_view(['PATCH'])
+def user_restore(request, pk):
+    user = request.user
+    if user.role != 'ADMIN':
+        raise PermissionDenied("You do not have permission to perform this action")
+
+    if request.method == 'PATCH':
+        try:
+            usersData = User.objects.get(pk=pk, is_deleted=True)
+            usersData.is_deleted = False
+            usersData.save()
+            return Response({'message': 'User restored successfully'}, status=status.HTTP_200_OK)
+
+        except User.DoesNotExist:
+            raise NotFound("User not found")
     
     raise MethodNotAllowed(request.method)

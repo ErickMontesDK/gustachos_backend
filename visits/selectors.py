@@ -2,8 +2,15 @@ from .models import Visit, Client, ClientType
 from django.db.models import Q
 
 def get_filtered_visits(request):
+    user = request.user
     params = request.query_params
-    queryset = Visit.objects.all().filter(is_deleted=False).select_related('client', 'deliverer')
+    queryset = Visit.objects.all()
+
+    if user.role == 'ADMIN':
+        is_deleted = params.get('is_deleted', 'False').capitalize()
+        queryset = queryset.filter(is_deleted=is_deleted).select_related('client', 'deliverer')
+    else:
+        queryset = queryset.filter(is_deleted=False).select_related('client', 'deliverer')
 
     if params.get('sorting'):
         queryset = queryset.order_by(params.get('sorting'))
@@ -52,8 +59,15 @@ def get_filtered_visits(request):
     
 
 def get_filtered_clients(request):
+    user = request.user
     params = request.query_params
-    queryset = Client.objects.all().filter(is_deleted=False).select_related('client_type')
+    queryset = Client.objects.all()
+
+    if user.role == 'ADMIN':
+        is_deleted = params.get('is_deleted', 'False').capitalize()
+        queryset = queryset.filter(is_deleted=is_deleted).select_related('client_type')
+    else:
+        queryset = queryset.filter(is_deleted=False).select_related('client_type')
 
     sorting = params.get('sorting')
     code = params.get('code')

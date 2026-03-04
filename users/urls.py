@@ -6,4 +6,5 @@ urlpatterns = [
     path('users/<int:pk>/', user_detail, name='user_detail'),
     path('users/me/', user_me, name='user_me'),
     path('users/password/', update_user_password, name='update_user_password'),
+    path('users/restore/<int:pk>/', user_restore, name='user_restore'),
 ]

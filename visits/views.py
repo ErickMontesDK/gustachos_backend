@@ -29,6 +29,7 @@ class StandardPagination(PageNumberPagination):
         return response
 
 
+# CLIENT TYPES-------------------------------------------------------
 @api_view(['GET', 'POST'])
 def get_client_types(request):
     if request.method == 'GET':
@@ -64,6 +65,7 @@ def client_type_detail(request, pk):
     raise MethodNotAllowed(request.method)
 
 
+# VISITS------------------------------------------------------
 @api_view(['GET', 'POST'])
 def visit_list(request):
     user_id = request.user.id
@@ -112,6 +114,7 @@ def visit_list_export(request):
     generator = ExcelGenerator(sheet_name="visits_report")
     return generator.generate_excel(visits, columns, filename=f"visits_report_{date}.xlsx")
 
+
 @api_view(['GET', 'PATCH', 'DELETE'])
 def visit_detail(request, pk):
     
@@ -139,7 +142,25 @@ def visit_detail(request, pk):
     
     raise MethodNotAllowed(request.method)
 
+@api_view(['PATCH'])
+def visits_restore(request, pk):
+    user = request.user
+    if user.role != 'ADMIN':
+        raise PermissionDenied("You do not have permission to perform this action")
 
+    if request.method == 'PATCH':
+        try:
+            visit = Visit.objects.get(pk=pk, is_deleted=True)
+            visit.is_deleted = False
+            visit.save()
+            return Response({'message': 'Visit restored successfully'}, status=status.HTTP_200_OK)
+        except Visit.DoesNotExist:
+            raise NotFound("Visit not found")
+    
+    raise MethodNotAllowed(request.method)
+
+
+# CLIENTS------------------------------------------------------
 @api_view(['GET'])
 def client_code_available(request):
     if request.method == 'GET':
@@ -156,6 +177,7 @@ def client_code_available(request):
 
 @api_view(['GET', 'POST'])
 def client_list(request):
+    print(request.user.role)
     if request.method == 'GET':
         clients = get_filtered_clients(request)
         
@@ -170,6 +192,13 @@ def client_list(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise ValidationError(serializer.errors)
+
+@api_view(['GET'])
+def client_list_for_map(request):
+    if request.method == 'GET':
+        clients = get_filtered_clients(request)
+        serializer = ClientForMapSerializer(clients, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def client_by_code(request, code):
@@ -228,4 +257,19 @@ def client_list_export(request):
     generator = ExcelGenerator(sheet_name="Clientes")
     return generator.generate_excel(clients, columns, filename=f"clients_report_{date}.xlsx")
 
+@api_view(['PATCH'])
+def client_restore(request, pk):
+    user = request.user
+    if user.role != 'ADMIN':
+        raise PermissionDenied("You do not have permission to perform this action")
 
+    if request.method == 'PATCH':
+        try:
+            client = Client.objects.get(pk=pk, is_deleted=True)
+            client.is_deleted = False
+            client.save()
+            return Response({'message': 'Client restored successfully'}, status=status.HTTP_200_OK)
+        except Client.DoesNotExist:
+            raise NotFound("Client not found")
+    
+    raise MethodNotAllowed(request.method)
