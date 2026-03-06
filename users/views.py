@@ -132,8 +132,14 @@ def user_me(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_user_password(request, pk=None):
-    target_user_id = request.user.id if (pk is None or pk == 'me') else pk
+    # Determine the target user ID
+    is_me_endpoint = (pk is None or pk == 'me')
+    target_user_id = request.user.id if is_me_endpoint else pk
     
+    # If using numeric ID to update OWN password, redirect to use /me/
+    if not is_me_endpoint and int(target_user_id) == request.user.id:
+        raise ValidationError("To change your own password, please use the '/me/change-password/' endpoint.")
+
     if target_user_id != request.user.id and not IsAdminUser().has_permission(request, None):
         raise PermissionDenied("You do not have permission to perform this action")
 
