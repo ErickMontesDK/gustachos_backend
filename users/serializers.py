@@ -44,8 +44,22 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         email = attrs.get('email')
-        if User.objects.filter(email=email).exists():
-            raise serializers.ValidationError("Email already exists")
+        is_deleted = attrs.get('is_deleted')
+        request = self.context.get('request')
+        instance = self.instance
+
+        if email:
+            qs = User.objects.filter(email=email)
+            if instance:
+                qs = qs.exclude(pk=instance.pk)
+            if qs.exists():
+                raise serializers.ValidationError({"email": "Email already exists"})
+
+        if is_deleted is True and request and instance:
+            user = getattr(request, 'user', None)
+            if user and user.id == instance.id:
+                raise serializers.ValidationError({"is_deleted": "You cannot delete yourself"})
+
         return attrs
 
     def create(self, validated_data):
