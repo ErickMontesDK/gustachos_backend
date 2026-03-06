@@ -3,23 +3,36 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Business_Config
 from .serializers import Business_ConfigSerializer
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.exceptions import NotFound, PermissionDenied, ValidationError
+from utils.permissions import IsAdminUser
 
 @api_view(['GET', 'PATCH'])
+@permission_classes([IsAuthenticated])
 def BusinessConfigView(request):
+
     if request.method == 'GET':
         config = Business_Config.objects.first()
+
         if not config:
-            return Response({"detail": "No configuration found"}, status=status.HTTP_404_NOT_FOUND)
+            raise NotFound("No configuration found")
         serializer = Business_ConfigSerializer(config)
         return Response(serializer.data)
 
     if request.method == 'PATCH':
+
+        if not IsAdminUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
+            
         config = Business_Config.objects.first()
+
         if not config:
-            return Response({"detail": "No configuration found"}, status=status.HTTP_404_NOT_FOUND)
+            raise NotFound("No configuration found")
+
         serializer = Business_ConfigSerializer(config, data=request.data, partial=True)
+        
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        raise ValidationError(f"Invalid data provided: {serializer.errors}")

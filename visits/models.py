@@ -10,7 +10,7 @@ class ClientType(models.Model):
         help_text="The category or type of the client (e.g., Retail, Wholesale)."
     )
 
-    abbreviation = models.CharField(max_length=5, verbose_name="Abbreviation", null=True, blank=True)
+    abbreviation = models.CharField(unique=True, max_length=5, verbose_name="Abbreviation", null=True, blank=True)
     
     class Meta:
         verbose_name = "Client Type"

@@ -64,3 +64,25 @@ class UserSerializer(serializers.ModelSerializer):
             instance.set_password(password)
         instance.save()
         return instance
+
+class UserPasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(required=False, write_only=True)
+    new_password = serializers.CharField(required=True, write_only=True)
+
+    def validate(self, attrs):
+        user = self.instance
+        request = self.context.get('request')
+        
+        if request and request.user.role != 'ADMIN':
+            old_password = attrs.get('old_password')
+            if not old_password:
+                raise serializers.ValidationError({"old_password": "Current password is required."})
+            if not user.check_password(old_password):
+                raise serializers.ValidationError({"old_password": "Current password is incorrect."})
+        
+        return attrs
+
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance

@@ -6,10 +6,14 @@ from rest_framework.pagination import PageNumberPagination
 from .models import ClientType, Visit, Client
 from .serializers import *
 from django.db.models import Q
-from rest_framework.exceptions import NotFound, ValidationError, MethodNotAllowed
+from rest_framework.exceptions import NotFound, ValidationError, MethodNotAllowed, PermissionDenied
 from .selectors import get_filtered_visits, get_filtered_clients
 from utils.excel_generator import ExcelGenerator
 from datetime import datetime
+from rest_framework.decorators import permission_classes
+from utils.permissions import IsAdminUser, IsOperatorUser, IsDeliveryUser
+from rest_framework.permissions import IsAuthenticated
+
 
 class StandardPagination(PageNumberPagination):
     page_size = 10
@@ -31,21 +35,30 @@ class StandardPagination(PageNumberPagination):
 
 # CLIENT TYPES-------------------------------------------------------
 @api_view(['GET', 'POST'])
-def get_client_types(request):
+@permission_classes([IsAuthenticated])
+def client_types_list(request):
     if request.method == 'GET':
         client_types = ClientType.objects.all()
         serializer = ClientTypeSerializer(client_types, many=True)
         return Response(serializer.data)
         
     elif request.method == 'POST':
+        if not IsAdminUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
         serializer = ClientTypeSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise ValidationError(serializer.errors)
 
+
 @api_view(['PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def client_type_detail(request, pk):
+
+    if not IsAdminUser().has_permission(request, None):
+        raise PermissionDenied("You do not have permission to perform this action")
+
     try:
         client_type = ClientType.objects.get(pk=pk)
     except ClientType.DoesNotExist:
@@ -53,10 +66,11 @@ def client_type_detail(request, pk):
     
     if request.method == 'PATCH':
         serializer = ClientTypeSerializer(client_type, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        raise ValidationError(serializer.errors)
     
     elif request.method == 'DELETE':
         client_type.delete()
@@ -67,10 +81,12 @@ def client_type_detail(request, pk):
 
 # VISITS------------------------------------------------------
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def visit_list(request):
-    user_id = request.user.id
 
     if request.method == 'GET':
+        if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
         
         visits = get_filtered_visits(request)
 
@@ -81,7 +97,10 @@ def visit_list(request):
         return paginator.get_paginated_response(serializer.data)
     
     elif request.method == 'POST':
-        request.data['deliverer'] = user_id
+        if not IsDeliveryUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
+        
+        request.data['deliverer'] = request.user.id
         serializer = VisitSerializer(data=request.data)
         
         if serializer.is_valid():
@@ -89,8 +108,14 @@ def visit_list(request):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise ValidationError(serializer.errors)
 
+    raise MethodNotAllowed(request.method)
+
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def visit_list_export(request):
+    if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+        raise PermissionDenied("You do not have permission to perform this action")
+    
     date = datetime.now().strftime("%Y-%m-%d")
     visits = get_filtered_visits(request)
     
@@ -116,7 +141,10 @@ def visit_list_export(request):
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def visit_detail(request, pk):
+    if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+        raise PermissionDenied("You do not have permission to perform this action")
     
     try:
         visit = Visit.objects.get(pk=pk, is_deleted=False)
@@ -165,9 +193,8 @@ def visits_restore(request, pk):
 def client_code_available(request):
     if request.method == 'GET':
         code = request.query_params.get('code', None)
-
-        if code is None:
-            return Response({'message': 'Code is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if code == "" or code is None:
+            raise ValidationError("Code is required")
 
         if Client.objects.filter(code=code).exists():
             return Response({'message': 'Client code already exists', 'available': False}, status=status.HTTP_200_OK)
@@ -176,8 +203,12 @@ def client_code_available(request):
 
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def client_list(request):
-    print(request.user.role)
+    
+    if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+        raise PermissionDenied("You do not have permission to perform this action")
+    
     if request.method == 'GET':
         clients = get_filtered_clients(request)
         
@@ -188,19 +219,27 @@ def client_list(request):
     
     elif request.method == 'POST':
         serializer = ClientSerializer(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise ValidationError(serializer.errors)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def client_list_for_map(request):
+    if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+        raise PermissionDenied("You do not have permission to perform this action")
+
     if request.method == 'GET':
         clients = get_filtered_clients(request)
         serializer = ClientForMapSerializer(clients, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    raise MethodNotAllowed(request.method)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def client_by_code(request, code):
     try:
         client = Client.objects.get(code=code, is_deleted=False)
@@ -213,6 +252,7 @@ def client_by_code(request, code):
     
 
 @api_view(['GET', 'PATCH', 'DELETE'])
+@permission_classes([IsAuthenticated])
 def client_detail(request, id):
     try:
         client = Client.objects.get(id=id, is_deleted=False)
@@ -224,8 +264,11 @@ def client_detail(request, id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == 'PATCH':
-        print("podran hacerlo?", request.data)
+        if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
+        
         serializer = ClientSerializer(client, data=request.data, partial=True)
+
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -233,14 +276,22 @@ def client_detail(request, id):
         raise ValidationError(serializer.errors)
     
     elif request.method == 'DELETE':
+        if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
+        
         client.is_deleted = True
         client.save()
         return Response({'message': 'Client marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def client_list_export(request):
-    clients = get_filtered_clients(request)
-    date = datetime.now().strftime("%Y-%m-%d")
+    if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+        raise PermissionDenied("You do not have permission to perform this action")
+
+    if request.method == 'GET':
+        clients = get_filtered_clients(request)
+        date = datetime.now().strftime("%Y-%m-%d")
     
     columns = [
         ("ID", "id"),
@@ -259,9 +310,9 @@ def client_list_export(request):
     return generator.generate_excel(clients, columns, filename=f"clients_report_{date}.xlsx")
 
 @api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
 def client_restore(request, pk):
-    user = request.user
-    if user.role != 'ADMIN':
+    if not IsAdminUser().has_permission(request, None):
         raise PermissionDenied("You do not have permission to perform this action")
 
     if request.method == 'PATCH':
@@ -270,6 +321,7 @@ def client_restore(request, pk):
             client.is_deleted = False
             client.save()
             return Response({'message': 'Client restored successfully'}, status=status.HTTP_200_OK)
+
         except Client.DoesNotExist:
             raise NotFound("Client not found")
     

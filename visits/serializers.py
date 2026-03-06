@@ -82,24 +82,33 @@ class VisitSerializer(serializers.ModelSerializer):
 
 
         if client and lat_scan and lng_scan:
+            # ... (existing distance calculation logic)
             client_lat = client.latitude
             client_lng = client.longitude
-
             earth_radius = 6371008.8
-            
             lat1, lon1 = map(radians, [float(client_lat), float(client_lng)])
             lat2, lon2 = map(radians, [float(lat_scan), float(lng_scan)])
-            
             dlat = lat2 - lat1
             dlon = lon2 - lon1
-
             a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
             c = 2 * asin(sqrt(a))
             distance = earth_radius * c
-
             data['distance_from_client'] = distance
-
             data['is_valid'] = distance < 100
+
+        # Validación de frecuencia de visitas (Regla de los 10 minutos)
+        deliverer = data.get('deliverer')
+        visited_at = data.get('visited_at')
+
+        if deliverer and visited_at:
+            last_visit = Visit.objects.filter(deliverer=deliverer).order_by('-visited_at').first()
+            if last_visit:
+                time_diff = visited_at - last_visit.visited_at
+                suspicius_minutes = 10
+                if time_diff.total_seconds() < 60 * suspicius_minutes:
+                    raise serializers.ValidationError(
+                        {"visited_at": f"You already have a visit in the last {suspicius_minutes} minutes."}
+                    )
             
         return data
 
