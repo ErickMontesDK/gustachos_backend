@@ -18,10 +18,8 @@ class CustomTokenRefreshSerializer(TokenRefreshSerializer):
     def validate(self, attrs):
         try:
             data = super().validate(attrs)
-            print("Token refresh successful")
             return data
         except Exception as e:
-            print(f"Token refresh failed: {str(e)}")
             raise e
 
 class UserSerializer(serializers.ModelSerializer):
@@ -95,7 +93,6 @@ class UserPasswordSerializer(serializers.Serializer):
                 if not user.check_password(old_password):
                     raise serializers.ValidationError({"old_password": "Current password is incorrect."})
             
-            # If changing OTHER user's password, only ADMIN is allowed (without old_password)
             elif request.user.role != 'ADMIN':
                 raise serializers.PermissionDenied("You do not have permission to change other users' passwords.")
         

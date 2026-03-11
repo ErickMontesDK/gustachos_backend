@@ -82,7 +82,6 @@ class VisitSerializer(serializers.ModelSerializer):
 
 
         if client and lat_scan and lng_scan:
-            # ... (existing distance calculation logic)
             client_lat = client.latitude
             client_lng = client.longitude
             earth_radius = 6371008.8
@@ -96,7 +95,6 @@ class VisitSerializer(serializers.ModelSerializer):
             data['distance_from_client'] = distance
             data['is_valid'] = distance < 100
 
-        # Validación de frecuencia de visitas (Regla de los 10 minutos)
         deliverer = data.get('deliverer')
         visited_at = data.get('visited_at')
 
