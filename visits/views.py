@@ -74,7 +74,7 @@ def client_type_detail(request, pk):
     
     elif request.method == 'DELETE':
         client_type.delete()
-        return Response({'message': 'Client type deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Client type deleted successfully'}, status=status.HTTP_200_OK)
     
     raise MethodNotAllowed(request.method)
 
@@ -166,7 +166,7 @@ def visit_detail(request, pk):
     elif request.method == 'DELETE':
         visit.is_deleted = True
         visit.save()
-        return Response({'message': 'Visit marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Visit marked as deleted'}, status=status.HTTP_200_OK)
     
     raise MethodNotAllowed(request.method)
 
@@ -285,7 +285,7 @@ def client_detail(request, id):
         
         client.is_deleted = True
         client.save()
-        return Response({'message': 'Client marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Client marked as deleted'}, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

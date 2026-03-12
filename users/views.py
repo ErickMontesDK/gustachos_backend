@@ -111,7 +111,7 @@ def user_detail(request, pk):
 
         user.is_deleted = True
         user.save()
-        return Response({'message': 'User marked as deleted'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'User marked as deleted'}, status=status.HTTP_200_OK)
     
     raise MethodNotAllowed(request.method)
 
