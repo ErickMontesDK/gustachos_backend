@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Client, Visit, ClientType, Route
 from users.models import User
 from math import radians, sin, asin, sqrt, cos
+from datetime import timedelta
+
 
 
 
@@ -99,14 +101,23 @@ class VisitSerializer(serializers.ModelSerializer):
         visited_at = data.get('visited_at')
 
         if deliverer and visited_at:
-            last_visit = Visit.objects.filter(deliverer=deliverer).order_by('-visited_at').first()
-            if last_visit:
-                time_diff = visited_at - last_visit.visited_at
-                suspicius_minutes = 10
-                if time_diff.total_seconds() < 60 * suspicius_minutes:
-                    raise serializers.ValidationError(
-                        {"visited_at": f"You already have a visit in the last {suspicius_minutes} minutes."}
-                    )
+            suspicius_minutes = 10
+            start_range = visited_at - timedelta(minutes=suspicius_minutes)
+            end_range = visited_at + timedelta(minutes=suspicius_minutes)
+            
+            duplicate_visits = Visit.objects.filter(
+                deliverer=deliverer,
+                is_deleted=False,
+                visited_at__range=(start_range, end_range)
+            )
+            
+            if self.instance and self.instance.pk:
+                duplicate_visits = duplicate_visits.exclude(pk=self.instance.pk)
+                
+            if duplicate_visits.exists():
+                raise serializers.ValidationError(
+                    {"visited_at": f"You already have a visit within {suspicius_minutes} minutes of this time."}
+                )
             
         return data
 
