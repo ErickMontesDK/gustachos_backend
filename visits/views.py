@@ -206,10 +206,11 @@ def client_code_available(request):
 @permission_classes([IsAuthenticated])
 def client_list(request):
     
-    if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
-        raise PermissionDenied("You do not have permission to perform this action")
     
     if request.method == 'GET':
+        if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
+        
         clients = get_filtered_clients(request)
         
         paginator = StandardPagination()
@@ -218,6 +219,9 @@ def client_list(request):
         return paginator.get_paginated_response(serializer.data)
     
     elif request.method == 'POST':
+        if not IsDeliveryUser().has_permission(request, None):
+            raise PermissionDenied("You do not have permission to perform this action")
+        
         serializer = ClientSerializer(data=request.data)
 
         if serializer.is_valid():
