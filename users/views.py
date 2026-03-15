@@ -15,8 +15,62 @@ from utils.permissions import IsAdminUser, IsOperatorUser, IsDeliveryUser
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+    def post(self, request, *args, **kwargs):
+        response = super().post(request, *args, **kwargs)
+
+        access = response.data["access"]
+        refresh = response.data["refresh"]
+
+        response.set_cookie(
+            "access",
+            access,
+            httponly=True,
+            samesite="Lax"
+        )
+
+        response.set_cookie(
+            "refresh",
+            refresh,
+            httponly=True,
+            samesite="Lax"
+        )
+
+        response.data = {"message": "login ok"}
+
+        return response
+
 class CustomTokenRefreshView(TokenRefreshView):
     serializer_class = CustomTokenRefreshSerializer
+
+    def post(self, request, *args, **kwargs):
+
+        refresh = request.COOKIES.get("refresh")
+
+        serializer = self.get_serializer(data={"refresh": refresh})
+        serializer.is_valid(raise_exception=True)
+
+        access = serializer.validated_data["access"]
+        refresh = serializer.validated_data["refresh"]
+
+        response = Response({"message": "token refreshed"})
+
+        response.set_cookie(
+            "access",
+            access,
+            httponly=True,
+            samesite="Lax"
+        )
+
+        response.set_cookie(
+            "refresh",
+            refresh,
+            httponly=True,
+            samesite="Lax"
+        )
+
+        return response
+
+    
 
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
