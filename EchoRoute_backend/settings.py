@@ -166,20 +166,24 @@ AUTH_USER_MODEL = 'users.User'
 
 from datetime import timedelta
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=10),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': False,
+
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
-    'AUTH_HEADER_TYPES': ('Bearer',),
-    
+
     'AUTH_COOKIE': 'access',
     'AUTH_COOKIE_HTTP_ONLY': True,
     'AUTH_COOKIE_SAMESITE': 'Lax',
     'AUTH_COOKIE_SECURE': False,
+    'AUTH_COOKIE_MAX_AGE': 60 * 15 ,      # 15 minutos
+
     'REFRESH_COOKIE': 'refresh',
     'REFRESH_COOKIE_HTTP_ONLY': True,
     'REFRESH_COOKIE_SAMESITE': 'Lax',
     'REFRESH_COOKIE_SECURE': False,
+    'REFRESH_COOKIE_MAX_AGE': 60 * 60 * 24 * 7,  # 7 días
 }

@@ -11,6 +11,7 @@ from visits.views import StandardPagination
 from django.db.models import Q
 from rest_framework.exceptions import NotFound, MethodNotAllowed, ValidationError, PermissionDenied
 from utils.permissions import IsAdminUser, IsOperatorUser, IsDeliveryUser
+from django.conf import settings
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
@@ -22,17 +23,21 @@ class CustomTokenObtainPairView(TokenObtainPairView):
         refresh = response.data["refresh"]
 
         response.set_cookie(
-            "access",
-            access,
-            httponly=True,
-            samesite="Lax"
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            value=access,
+            max_age=settings.SIMPLE_JWT["AUTH_COOKIE_MAX_AGE"],
+            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         )
 
         response.set_cookie(
-            "refresh",
-            refresh,
-            httponly=True,
-            samesite="Lax"
+            key=settings.SIMPLE_JWT["REFRESH_COOKIE"],
+            value=refresh,
+            max_age=settings.SIMPLE_JWT["REFRESH_COOKIE_MAX_AGE"],
+            httponly=settings.SIMPLE_JWT["REFRESH_COOKIE_HTTP_ONLY"],
+            secure=settings.SIMPLE_JWT["REFRESH_COOKIE_SECURE"],
+            samesite=settings.SIMPLE_JWT["REFRESH_COOKIE_SAMESITE"],
         )
 
         response.data = {"message": "login ok"}
@@ -55,17 +60,21 @@ class CustomTokenRefreshView(TokenRefreshView):
         response = Response({"message": "token refreshed"})
 
         response.set_cookie(
-            "access",
-            access,
-            httponly=True,
-            samesite="Lax"
+            key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+            value=access,
+            max_age=settings.SIMPLE_JWT["AUTH_COOKIE_MAX_AGE"],
+            httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+            samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
         )
 
         response.set_cookie(
-            "refresh",
-            refresh,
-            httponly=True,
-            samesite="Lax"
+            key=settings.SIMPLE_JWT["REFRESH_COOKIE"],
+            value=refresh,
+            max_age=settings.SIMPLE_JWT["REFRESH_COOKIE_MAX_AGE"],
+            httponly=settings.SIMPLE_JWT["REFRESH_COOKIE_HTTP_ONLY"],
+            secure=settings.SIMPLE_JWT["REFRESH_COOKIE_SECURE"],
+            samesite=settings.SIMPLE_JWT["REFRESH_COOKIE_SAMESITE"],
         )
 
         return response
