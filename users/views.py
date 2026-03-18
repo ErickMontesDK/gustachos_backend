@@ -110,7 +110,8 @@ def user_list(request):
             users = users.filter(
             Q(first_name__icontains=search_term) | 
             Q(last_name__icontains=search_term) | 
-            Q(email__icontains=search_term) 
+            Q(email__icontains=search_term) | 
+            Q(username__icontains=search_term)
         )
 
         if role:

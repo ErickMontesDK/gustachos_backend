@@ -3,9 +3,7 @@ from .models import Client, Visit, ClientType, Route
 from users.models import User
 from math import radians, sin, asin, sqrt, cos
 from datetime import timedelta
-
-
-
+from core.models import Business_Config
 
 
 class ClientTypeSerializer(serializers.ModelSerializer):
@@ -39,7 +37,6 @@ class ClientSerializer(serializers.ModelSerializer):
         ]
 
 class ClientForMapSerializer(serializers.ModelSerializer):
-    # client_type = serializers.SlugRelatedField(read_only=True, slug_field='name')
     class Meta:
         model = Client
         fields = [
@@ -78,6 +75,11 @@ class VisitSerializer(serializers.ModelSerializer):
         ]
 
     def validate(self, data):
+        business_config = Business_Config.objects.first()
+        max_distance = business_config.max_valid_distance
+        distance_unit = business_config.distance_unit
+        time_limit = business_config.min_time_between_visits
+
         client = data.get('client')
         lat_scan = data.get('latitude_recorded')
         lng_scan = data.get('longitude_recorded')
@@ -94,16 +96,17 @@ class VisitSerializer(serializers.ModelSerializer):
             a = sin(dlat / 2)**2 + cos(lat1) * cos(lat2) * sin(dlon / 2)**2
             c = 2 * asin(sqrt(a))
             distance = earth_radius * c
+
             data['distance_from_client'] = distance
-            data['is_valid'] = distance < 100
+            data['is_valid'] = distance < max_distance * 32.8084 if distance_unit == 'ft' else distance < max_distance
 
         deliverer = data.get('deliverer')
         visited_at = data.get('visited_at')
 
         if deliverer and visited_at:
-            suspicius_minutes = 10
-            start_range = visited_at - timedelta(minutes=suspicius_minutes)
-            end_range = visited_at + timedelta(minutes=suspicius_minutes)
+            suspicius_time = time_limit
+            start_range = visited_at - timedelta(minutes=suspicius_time)
+            end_range = visited_at + timedelta(minutes=suspicius_time)
             
             duplicate_visits = Visit.objects.filter(
                 deliverer=deliverer,
@@ -116,7 +119,7 @@ class VisitSerializer(serializers.ModelSerializer):
                 
             if duplicate_visits.exists():
                 raise serializers.ValidationError(
-                    {"visited_at": f"You already have a visit within {suspicius_minutes} minutes of this time."}
+                    {"visited_at": f"You already have a visit within {suspicius_time} minutes of this time."}
                 )
             
         return data
