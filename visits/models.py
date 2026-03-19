@@ -61,6 +61,15 @@ class Client(models.Model):
     
     is_active = models.BooleanField(default=False, verbose_name="Is Active")
     is_deleted = models.BooleanField(default=False, verbose_name="Is Deleted")
+    created_by = models.ForeignKey(
+        'users.User', 
+        on_delete=models.SET_NULL, 
+        related_name="registered_clients", 
+        verbose_name="Created By", 
+        null=True, 
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Created At", null=True, blank=True)
 
     class Meta:
         verbose_name = "Client"

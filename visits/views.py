@@ -225,7 +225,7 @@ def client_list(request):
         serializer = ClientSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(created_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         raise ValidationError(serializer.errors)
 
