@@ -14,6 +14,11 @@ class ClientTypeSerializer(serializers.ModelSerializer):
 class ClientSerializer(serializers.ModelSerializer):
     client_type_name = serializers.CharField(source='client_type.name', read_only=True)
     full_address = serializers.CharField(source='get_full_address', read_only=True)
+    client_type = serializers.PrimaryKeyRelatedField(
+        queryset=ClientType.objects.all(), 
+        allow_null=True, 
+        required=False
+    )
 
     class Meta:
         model = Client
@@ -35,6 +40,14 @@ class ClientSerializer(serializers.ModelSerializer):
             'is_active',
             'is_deleted'
         ]
+
+    def to_internal_value(self, data):
+        data = data.copy()
+        if 'client_type' in data:
+            val = data.get('client_type')
+            if val == "" or val == "0" or val == 0 or val == "None":
+                data['client_type'] = None
+        return super().to_internal_value(data)
 
 class ClientForMapSerializer(serializers.ModelSerializer):
     class Meta:

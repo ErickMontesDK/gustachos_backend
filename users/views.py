@@ -431,7 +431,7 @@ def dashboard_stats(request):
                     "timestamp": c.created_at,
                     "metadata": {
                         "client_code": c.code,
-                        "user_name": creator_name
+                        "user_name": creator_name,
                     }
                 })
                 

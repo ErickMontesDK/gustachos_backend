@@ -268,6 +268,7 @@ def client_detail(request, id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == 'PATCH':
+        print(request.data)
         if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
             raise PermissionDenied("You do not have permission to perform this action")
         
