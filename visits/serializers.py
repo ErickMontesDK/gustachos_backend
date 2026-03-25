@@ -128,16 +128,15 @@ class VisitSerializer(serializers.ModelSerializer):
             duplicate_visits = Visit.objects.filter(
                 deliverer=deliverer,
                 is_deleted=False,
-                visited_at__range=(start_range, end_range)
+                visited_at__range=(start_range, end_range),
+                is_valid=True
             )
             
             if self.instance and self.instance.pk:
                 duplicate_visits = duplicate_visits.exclude(pk=self.instance.pk)
                 
             if duplicate_visits.exists():
-                raise serializers.ValidationError(
-                    {"visited_at": f"You already have a visit within {suspicius_time} minutes of this time."}
-                )
+                data['is_valid'] = False
             
         return data
 

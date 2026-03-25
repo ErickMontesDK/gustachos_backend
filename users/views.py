@@ -267,7 +267,6 @@ def user_dashboard(request):
             visited_at__date=today,
             is_deleted=False
         ).values('client').count()
-        print("visited_clients_today:",visited_clients_today)
 
         productive_visits_today = Visit.objects.filter(
             deliverer=user,
