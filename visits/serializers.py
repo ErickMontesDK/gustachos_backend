@@ -19,6 +19,8 @@ class ClientSerializer(serializers.ModelSerializer):
         allow_null=True, 
         required=False
     )
+    status = serializers.CharField(read_only=True)
+    last_sale_date = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Client
@@ -38,6 +40,8 @@ class ClientSerializer(serializers.ModelSerializer):
             'sector', 
             'market',
             'is_active',
+            'status',
+            'last_sale_date',
             'is_deleted'
         ]
 

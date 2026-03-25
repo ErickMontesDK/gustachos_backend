@@ -7,7 +7,7 @@ from .models import ClientType, Visit, Client
 from .serializers import *
 from django.db.models import Q
 from rest_framework.exceptions import NotFound, ValidationError, MethodNotAllowed, PermissionDenied
-from .selectors import get_filtered_visits, get_filtered_clients
+from .selectors import get_filtered_visits, get_filtered_clients, get_client_detail
 from utils.excel_generator import ExcelGenerator
 from datetime import datetime
 from rest_framework.decorators import permission_classes
@@ -258,9 +258,8 @@ def client_by_code(request, code):
 @api_view(['GET', 'PATCH', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def client_detail(request, id):
-    try:
-        client = Client.objects.get(id=id, is_deleted=False)
-    except Client.DoesNotExist:
+    client = get_client_detail(id)
+    if not client:
         raise NotFound("Client not found")
     
     if request.method == 'GET':
@@ -268,7 +267,6 @@ def client_detail(request, id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     elif request.method == 'PATCH':
-        print(request.data)
         if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
             raise PermissionDenied("You do not have permission to perform this action")
         

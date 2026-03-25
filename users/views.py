@@ -301,7 +301,7 @@ def user_dashboard(request):
                 "type": "visit",
                 "title": v.client.name if v.client else "Unknown",
                 "timestamp": v.visited_at,
-                "description": f"Visit registered.",
+                "description": v.notes,
                 "metadata": {
                     "is_productive": v.is_productive,
                     "user_name": deliverer_name
@@ -316,7 +316,7 @@ def user_dashboard(request):
                     "type": "client",
                     "title": c.name,
                     "timestamp": c.created_at,
-                    "description": f"New client registered.",
+                    # "description": f"New client registered.",
                     "metadata": {
                         "client_code": c.code,
                         "user_name": creator_name

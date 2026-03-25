@@ -1,7 +1,7 @@
 from .models import Visit, Client, ClientType
-from django.db.models import Q
-from core.models import Business_Config
-from datetime import datetime, time
+from django.db.models import Q, Max, Case, When, Value, CharField
+from django.utils import timezone
+from datetime import datetime, time, timedelta
 import zoneinfo
 
 def returnTrueOrFalse(value):
@@ -28,8 +28,6 @@ def get_filtered_visits(request):
     else:
         queryset = queryset.order_by('-id')
 
-    
-
     search_term = params.get('search_term')
     client_type = params.get('client_type')
     date_from = params.get('date_from')
@@ -40,6 +38,7 @@ def get_filtered_visits(request):
     is_productive = returnTrueOrFalse(params.get('is_productive'))
     is_valid = returnTrueOrFalse(params.get('is_valid'))
 
+    from core.models import Business_Config
     business_config = Business_Config.objects.first()
     tz_name = business_config.time_zone if business_config else 'UTC'
     tz = zoneinfo.ZoneInfo(tz_name)
@@ -95,6 +94,31 @@ def get_filtered_visits(request):
         queryset = queryset.filter(is_valid=is_valid)
 
     return queryset
+
+def get_client_detail(client_id):
+    """
+    Get a single client by ID with status annotations.
+    """
+    now = timezone.now()
+    one_month_ago = now - timedelta(days=30)
+    three_months_ago = now - timedelta(days=90)
+
+    queryset = Client.objects.filter(id=client_id, is_deleted=False)
+    
+    queryset = queryset.annotate(
+        last_sale_date=Max('visits__visited_at', filter=Q(visits__is_productive=True, visits__is_deleted=False))
+    ).annotate(
+        status=Case(
+            When(is_active=False, then=Value('prospect')),
+            When(last_sale_date__isnull=True, then=Value('inactive')),
+            When(last_sale_date__gte=one_month_ago, then=Value('active')),
+            When(last_sale_date__gte=three_months_ago, then=Value('paused')),
+            default=Value('inactive'),
+            output_field=CharField()
+        )
+    )
+
+    return queryset.first()
     
 
 def get_filtered_clients(request):
@@ -149,6 +173,24 @@ def get_filtered_clients(request):
 
     if name:
         queryset = queryset.filter(name__icontains=name)
+
+    # Dynamic status calculation
+    now = timezone.now()
+    one_month_ago = now - timedelta(days=30)
+    three_months_ago = now - timedelta(days=90)
+
+    queryset = queryset.annotate(
+        last_sale_date=Max('visits__visited_at', filter=Q(visits__is_productive=True, visits__is_deleted=False))
+    ).annotate(
+        status=Case(
+            When(is_active=False, then=Value('prospecto')),
+            When(last_sale_date__isnull=True, then=Value('inactive')),
+            When(last_sale_date__gte=one_month_ago, then=Value('active')),
+            When(last_sale_date__gte=three_months_ago, then=Value('paused')),
+            default=Value('inactive'),
+            output_field=CharField()
+        )
+    )
 
     if is_active is not None:
         queryset = queryset.filter(is_active=is_active)

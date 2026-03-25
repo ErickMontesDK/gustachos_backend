@@ -11,7 +11,6 @@ class CookieJWTAuthentication(JWTAuthentication):
         else:
             raw_token = self.get_raw_token(header)
 
-        print("raw_token", raw_token)
         if raw_token is None:
             return None
 
