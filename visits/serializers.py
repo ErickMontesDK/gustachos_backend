@@ -115,7 +115,12 @@ class VisitSerializer(serializers.ModelSerializer):
             distance = earth_radius * c
 
             data['distance_from_client'] = distance
-            data['is_valid'] = distance < max_distance * 32.8084 if distance_unit == 'ft' else distance < max_distance
+            if distance_unit == 'ft':
+                max_distance_meters = max_distance / 3.28084  
+            else:
+                max_distance_meters = max_distance  
+
+            data['is_valid'] = distance < max_distance_meters
 
         deliverer = data.get('deliverer')
         visited_at = data.get('visited_at')
