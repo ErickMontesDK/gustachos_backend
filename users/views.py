@@ -387,9 +387,14 @@ def dashboard_stats(request):
             is_deleted=False
         ).count()
 
-        unvalidated_visits_today = visited_clients_today - validated_visits_today
-        productive_percentage = (productive_visits_today / visited_clients_today) * 100 if visited_clients_today > 0 else 0
-        valid_visits_percentage = (validated_visits_today / visited_clients_today) * 100 if visited_clients_today > 0 else 0
+        total_visits_today = Visit.objects.filter(
+            visited_at__date=today,
+            is_deleted=False
+        ).count()
+
+        unvalidated_visits_today = total_visits_today - validated_visits_today
+        productive_percentage = (productive_visits_today / total_visits_today) * 100 if total_visits_today > 0 else 0
+        valid_visits_percentage = (validated_visits_today / total_visits_today) * 100 if total_visits_today > 0 else 0
         
         recent_visits = Visit.objects.filter(
             is_deleted=False
