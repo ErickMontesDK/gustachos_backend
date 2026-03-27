@@ -30,7 +30,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '.railway.app', 
     os.getenv("RAILWAY_PUBLIC_DOMAIN", ""),
-    os.getenv("KOYEB_PUBLIC_DOMAIN", ""),
+    "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
