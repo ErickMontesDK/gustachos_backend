@@ -30,11 +30,13 @@ ALLOWED_HOSTS = [
     '127.0.0.1',
     '.railway.app', 
     os.getenv("RAILWAY_PUBLIC_DOMAIN", ""),
+    os.getenv("KOYEB_PUBLIC_DOMAIN", ""),
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://echoroutebackend-production.up.railway.app",
     "http://localhost:3000",
+    os.getenv("KOYEB_PUBLIC_DOMAIN", ""),
 ]
 
 # Application definition
@@ -149,7 +151,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
-    "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
+    os.getenv("KOYEB_PUBLIC_DOMAIN", ""),
 ]
 
 REST_FRAMEWORK = {
@@ -180,11 +182,11 @@ SIMPLE_JWT = {
     'AUTH_COOKIE_HTTP_ONLY': True,
     'AUTH_COOKIE_SAMESITE': 'Lax',
     'AUTH_COOKIE_SECURE': False,
-    'AUTH_COOKIE_MAX_AGE': 60 * 15 ,      # 15 minutos
+    'AUTH_COOKIE_MAX_AGE': 60 * 15 ,      
 
     'REFRESH_COOKIE': 'refresh',
     'REFRESH_COOKIE_HTTP_ONLY': True,
     'REFRESH_COOKIE_SAMESITE': 'Lax',
     'REFRESH_COOKIE_SECURE': False,
-    'REFRESH_COOKIE_MAX_AGE': 60 * 60 * 24 * 7,  # 7 días
+    'REFRESH_COOKIE_MAX_AGE': 60 * 60 * 24 * 7,  
 }
