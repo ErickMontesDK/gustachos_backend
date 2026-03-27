@@ -180,13 +180,20 @@ SIMPLE_JWT = {
 
     'AUTH_COOKIE': 'access',
     'AUTH_COOKIE_HTTP_ONLY': True,
-    'AUTH_COOKIE_SAMESITE': 'Lax',
-    'AUTH_COOKIE_SECURE': False,
-    'AUTH_COOKIE_MAX_AGE': 60 * 15 ,      
+    'AUTH_COOKIE_SAMESITE': 'None',  # CAMBIADO de 'Lax' a 'None'
+    'AUTH_COOKIE_SECURE': True,    # CAMBIADO de False a True
+    'AUTH_COOKIE_MAX_AGE': 60 * 15,
 
     'REFRESH_COOKIE': 'refresh',
     'REFRESH_COOKIE_HTTP_ONLY': True,
-    'REFRESH_COOKIE_SAMESITE': 'Lax',
-    'REFRESH_COOKIE_SECURE': False,
+    'REFRESH_COOKIE_SAMESITE': 'None', # CAMBIADO de 'Lax' a 'None'
+    'REFRESH_COOKIE_SECURE': True,   # CAMBIADO de False a True
     'REFRESH_COOKIE_MAX_AGE': 60 * 60 * 24 * 7,  
+
 }
+
+# Configuraciones extra para cookies en producción
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True   
