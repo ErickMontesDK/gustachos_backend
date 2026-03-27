@@ -36,7 +36,7 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     "https://echoroutebackend-production.up.railway.app",
     "http://localhost:3000",
-    os.getenv("KOYEB_PUBLIC_DOMAIN", ""),
+    "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
 ]
 
 # Application definition
@@ -151,7 +151,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
-    os.getenv("KOYEB_PUBLIC_DOMAIN", ""),
+    "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
 ]
 
 REST_FRAMEWORK = {
