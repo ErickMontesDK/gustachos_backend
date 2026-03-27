@@ -149,6 +149,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
+    "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
 ]
 
 REST_FRAMEWORK = {
