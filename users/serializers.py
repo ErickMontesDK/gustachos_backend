@@ -89,9 +89,9 @@ class UserPasswordSerializer(serializers.Serializer):
             if request.user.id == user.id:
                 old_password = attrs.get('old_password')
                 if not old_password:
-                    raise serializers.ValidationError({"old_password": "Current password is required."})
+                    raise serializers.ValidationError({"current_password": "Current password is required."})
                 if not user.check_password(old_password):
-                    raise serializers.ValidationError({"old_password": "Current password is incorrect."})
+                    raise serializers.ValidationError({"current_password": "Current password is incorrect."})
             
             elif request.user.role != 'ADMIN':
                 raise serializers.PermissionDenied("You do not have permission to change other users' passwords.")
