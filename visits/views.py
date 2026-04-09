@@ -190,6 +190,7 @@ def visits_restore(request, pk):
 
 # CLIENTS------------------------------------------------------
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def client_code_available(request):
     if request.method == 'GET':
         code = request.query_params.get('code', None)
