@@ -161,7 +161,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
-    "https://echoroute-wine.vercel.app"
+    "https://echoroute-wine.vercel.app",
     "https://gustachos.vercel.app"
 ]
 
