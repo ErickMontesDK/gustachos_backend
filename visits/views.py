@@ -12,6 +12,9 @@ from utils.excel_generator import ExcelGenerator
 from datetime import datetime
 from rest_framework.decorators import permission_classes
 from utils.permissions import IsAdminUser, IsOperatorUser, IsDeliveryUser
+from core.models import Business_Config
+import pytz
+
 from rest_framework.permissions import IsAuthenticated
 
 
@@ -113,10 +116,18 @@ def visit_list(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def visit_list_export(request):
+    if request.method != 'GET':
+        raise MethodNotAllowed(request.method)
+    
     if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
         raise PermissionDenied("You do not have permission to perform this action")
     
-    date = datetime.now().strftime("%Y-%m-%d")
+    business_config = Business_Config.objects.first()
+    if not business_config or not business_config.time_zone:
+        raise ValidationError("Business configuration is incomplete (missing timezone).")
+    
+    tz = pytz.timezone(business_config.time_zone)
+    date = datetime.now(tz).strftime("%Y-%m-%d")
     visits = get_filtered_visits(request)
     
     columns = [
@@ -126,8 +137,8 @@ def visit_list_export(request):
         ("Client Type", "client__client_type__name"),
         ("Sector", "client__sector"),
         ("Deliverer", lambda x: f"{x.deliverer.first_name} {x.deliverer.last_name}" if x.deliverer else ""),
-        ("Date", lambda x: x.visited_at.strftime("%Y-%m-%d") if x.visited_at else ""),
-        ("Time", lambda x: x.visited_at.strftime("%H:%M") if x.visited_at else ""),
+        ("Date", lambda x: x.visited_at.astimezone(tz).strftime("%Y-%m-%d") if x.visited_at else ""),
+        ("Time", lambda x: x.visited_at.astimezone(tz).strftime("%H:%M") if x.visited_at else ""),
         ("Address", "client__address"),
         ("Municipality", "client__municipality"),
         ("State", "client__state"),
@@ -290,13 +301,20 @@ def client_detail(request, id):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def client_list_export(request):
+    if request.method != 'GET':
+        raise MethodNotAllowed(request.method)
+    
     if not IsAdminUser().has_permission(request, None) and not IsOperatorUser().has_permission(request, None):
         raise PermissionDenied("You do not have permission to perform this action")
 
-    if request.method == 'GET':
-        clients = get_filtered_clients(request)
-        date = datetime.now().strftime("%Y-%m-%d")
+    business_config = Business_Config.objects.first()
+    if not business_config or not business_config.time_zone:
+        raise ValidationError("Business configuration is incomplete (missing timezone).")
     
+    tz = pytz.timezone(business_config.time_zone)
+    date = datetime.now(tz).strftime("%Y-%m-%d")
+    clients = get_filtered_clients(request)
+
     columns = [
         ("ID", "id"),
         ("Client", "name"),
@@ -312,6 +330,7 @@ def client_list_export(request):
     
     generator = ExcelGenerator(sheet_name="Clientes")
     return generator.generate_excel(clients, columns, filename=f"clients_report_{date}.xlsx")
+    
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
