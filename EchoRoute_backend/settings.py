@@ -32,12 +32,14 @@ ALLOWED_HOSTS = [
     '.railway.app', 
     os.getenv("RAILWAY_PUBLIC_DOMAIN", ""),
     "estimated-chicky-gustachos-c1be7cda.koyeb.app",
+    "https://echoroute-backend.onrender.com/"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://echoroutebackend-production.up.railway.app",
     "http://localhost:3000",
     "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
+    "https://echoroute-backend.onrender.com/"
 ]
 
 # Application definition
@@ -154,6 +156,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
     "https://gustachos.vercel.app",
+    "https://echoroute-wine.vercel.app"
 ]
 
 REST_FRAMEWORK = {
