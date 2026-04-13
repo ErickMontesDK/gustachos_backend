@@ -24,6 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-build-key-only')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
+DEMO_MODE = config('DEMO_MODE', default=False, cast=bool)
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -65,6 +66,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'EchoRoute_backend.middleware.DemoModeMiddleware',
 ]
 
 ROOT_URLCONF = 'EchoRoute_backend.urls'
