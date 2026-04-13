@@ -34,12 +34,14 @@ ALLOWED_HOSTS = [
     '.railway.app', 
     "estimated-chicky-gustachos-c1be7cda.koyeb.app",
     "echoroute-backend.onrender.com",
+    "gustachos-backend.onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
     "https://echoroute-backend.onrender.com",
+    "https://gustachos-backend.onrender.com",
 ]
 
 if BACKEND_URL:
@@ -160,6 +162,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
     "https://echoroute-wine.vercel.app"
+    "https://gustachos.vercel.app"
 ]
 
 if FRONTEND_URL:
