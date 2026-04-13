@@ -149,7 +149,7 @@ def visit_list_export(request):
     ]
     
     generator = ExcelGenerator(sheet_name="visits_report")
-    return generator.generate_excel(visits, columns, filename=f"visits_report_{date}.xlsx")
+    return generator.generate_excel(visits, columns, filename=f"visits_report_{datetime.now(tz)}.xlsx")
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
