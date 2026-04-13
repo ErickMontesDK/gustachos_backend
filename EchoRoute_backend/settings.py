@@ -25,25 +25,26 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-build-key-only')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 DEMO_MODE = config('DEMO_MODE', default=False, cast=bool)
+BACKEND_URL = config('BACKEND_URL', default='')
+FRONTEND_URL = config('FRONTEND_URL', default='')
 
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.railway.app', 
-    os.getenv("RAILWAY_PUBLIC_DOMAIN", ""),
     "estimated-chicky-gustachos-c1be7cda.koyeb.app",
     "echoroute-backend.onrender.com",
-    os.getenv("deployment_backend_url", ""),
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://echoroutebackend-production.up.railway.app",
     "http://localhost:3000",
     "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
     "https://echoroute-backend.onrender.com",
-    "https://"+os.getenv("deployment_backend_url", ""),
 ]
 
+if BACKEND_URL:
+    ALLOWED_HOSTS.append(BACKEND_URL)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{BACKEND_URL}")
 # Application definition
 
 INSTALLED_APPS = [
@@ -158,9 +159,11 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
-    "https://gustachos.vercel.app",
     "https://echoroute-wine.vercel.app"
 ]
+
+if FRONTEND_URL:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
