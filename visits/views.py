@@ -129,6 +129,7 @@ def visit_list_export(request):
     tz = pytz.timezone(business_config.time_zone)
     date = datetime.now(tz).strftime("%Y-%m-%d")
     visits = get_filtered_visits(request)
+    print(date, business_config.time_zone, datetime.now(tz))
     
     columns = [
         ("ID", "id"),
