@@ -129,7 +129,7 @@ def visit_list_export(request):
     tz = pytz.timezone(business_config.time_zone)
     date = datetime.now(tz).strftime("%Y-%m-%d")
     visits = get_filtered_visits(request)
-    print(date, business_config.time_zone, datetime.now(tz))
+
     
     columns = [
         ("ID", "id"),
@@ -149,7 +149,7 @@ def visit_list_export(request):
     ]
     
     generator = ExcelGenerator(sheet_name="visits_report")
-    return generator.generate_excel(visits, columns, filename=f"visits_report_{datetime.now(tz)}.xlsx")
+    return generator.generate_excel(visits, columns, filename=f"visits_report_{date}.xlsx")
 
 
 @api_view(['GET', 'PATCH', 'DELETE'])
