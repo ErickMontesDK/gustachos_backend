@@ -2,7 +2,9 @@ from django.shortcuts import render
 from django.utils import timezone
 from visits.models import Visit, Client
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.tokens import RefreshToken
 from .serializers import CustomTokenObtainPairSerializer, CustomTokenRefreshSerializer
+from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -82,6 +84,35 @@ class CustomTokenRefreshView(TokenRefreshView):
         )
 
         return response
+
+class LogoutView(APIView):
+    def post(self, request):
+        try:
+            refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['REFRESH_COOKIE'])
+            
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+
+            response = Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+
+            response.delete_cookie(
+                key=settings.SIMPLE_JWT["AUTH_COOKIE"],
+                samesite=settings.SIMPLE_JWT["AUTH_COOKIE_SAMESITE"],
+                secure=settings.SIMPLE_JWT["AUTH_COOKIE_SECURE"],
+                httponly=settings.SIMPLE_JWT["AUTH_COOKIE_HTTP_ONLY"],
+            )
+            response.delete_cookie(
+                key=settings.SIMPLE_JWT["REFRESH_COOKIE"],
+                samesite=settings.SIMPLE_JWT["REFRESH_COOKIE_SAMESITE"],
+                secure=settings.SIMPLE_JWT["REFRESH_COOKIE_SECURE"],
+                httponly=settings.SIMPLE_JWT["REFRESH_COOKIE_HTTP_ONLY"],
+            )
+            
+            return response
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
     
 

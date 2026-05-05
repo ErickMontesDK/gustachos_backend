@@ -24,21 +24,29 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = config('SECRET_KEY', default='django-insecure-build-key-only')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
+DEMO_MODE = config('DEMO_MODE', default=False, cast=bool)
+BACKEND_URL = config('BACKEND_URL', default='')
+FRONTEND_URL = config('FRONTEND_URL', default='')
 
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     '.railway.app', 
-    os.getenv("RAILWAY_PUBLIC_DOMAIN", ""),
     "estimated-chicky-gustachos-c1be7cda.koyeb.app",
+    "echoroute-backend.onrender.com",
+    "gustachos-backend.onrender.com",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://echoroutebackend-production.up.railway.app",
     "http://localhost:3000",
     "https://estimated-chicky-gustachos-c1be7cda.koyeb.app",
+    "https://echoroute-backend.onrender.com",
+    "https://gustachos-backend.onrender.com",
 ]
 
+if BACKEND_URL:
+    ALLOWED_HOSTS.append(BACKEND_URL)
+    CSRF_TRUSTED_ORIGINS.append(f"https://{BACKEND_URL}")
 # Application definition
 
 INSTALLED_APPS = [
@@ -53,6 +61,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'users',
     'core',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'EchoRoute_backend.middleware.DemoModeMiddleware',
 ]
 
 ROOT_URLCONF = 'EchoRoute_backend.urls'
@@ -151,8 +161,12 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "https://echoroutefrontend-production.up.railway.app",
-    "https://gustachos.vercel.app",
+    "https://echoroute-wine.vercel.app",
+    "https://gustachos.vercel.app"
 ]
+
+if FRONTEND_URL:
+    CORS_ALLOWED_ORIGINS.append(FRONTEND_URL)
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -173,7 +187,7 @@ SIMPLE_JWT = {
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
 
     'ROTATE_REFRESH_TOKENS': True,
-    'BLACKLIST_AFTER_ROTATION': False,
+    'BLACKLIST_AFTER_ROTATION': True,
 
     'ALGORITHM': 'HS256',
     'SIGNING_KEY': SECRET_KEY,
