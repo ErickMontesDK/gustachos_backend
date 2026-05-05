@@ -11,7 +11,8 @@ class DemoModeMiddleware:
         self.unsafe_methods = ['POST', 'PUT', 'PATCH', 'DELETE']
         self.exempt_paths = [
             '/api/auth/login/',
-            '/api/auth/refresh/'
+            '/api/auth/refresh/',
+            '/api/auth/logout/'
         ]
 
     def __call__(self, request):

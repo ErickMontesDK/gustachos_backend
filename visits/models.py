@@ -53,8 +53,8 @@ class Client(models.Model):
         blank=True
     )
     
-    latitude = models.DecimalField(max_digits=12, decimal_places=9, null=False, blank=False)
-    longitude = models.DecimalField(max_digits=12, decimal_places=9, null=False, blank=False)
+    latitude = models.DecimalField(max_digits=12, decimal_places=9, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=12, decimal_places=9, null=True, blank=True)
     
     sector = models.CharField(max_length=100, null=True, blank=True, verbose_name="Sector")
     market = models.CharField(max_length=100, null=True, blank=True, verbose_name="Market")
